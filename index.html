@@ -53,7 +53,7 @@ td.st,th:first-child{text-align:left;font-weight:600;}
 </style></head>
 <body>
 <div class="topbar">
-  <div class="title">高化经营看板<small>云端版整体 · 门店 · 集团 · 品牌 · 单店品牌 · 月度趋势<span class="ubadge">单位：千元</span></small></div>
+  <div class="title">高化经营看板<small>云端版整体 · 门店 · 集团 · 品牌 · 单店品牌 · 月度趋势<span class="ubadge">单位：万元</span></small></div>
   <div class="controls">
     <label>报表 <select id="snapSel"></select></label>
     <label>月份 <select id="monthSel"></select></label>
@@ -80,7 +80,8 @@ let HISTORY=[], ANNUAL={}, ANNUAL_TOTAL=0, IDX=0, DIM='overall', PERIOD='ytd', M
 let BFILTER='全部', BSORT='actual', STORE_SEL='NC';
 const MONTH_CN=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 const $=s=>document.querySelector(s);
-const fmt=v=>v==null?'—':Math.round(v).toLocaleString('en-US');
+const UNIT_DIV=10;  // 源数据单位：万元；看板统一展示为万元（÷10）
+const fmt=v=>v==null?'—':(v/UNIT_DIV).toLocaleString('en-US',{maximumFractionDigits:1});
 const pct=x=>x==null?'—':x.toFixed(1)+'%';
 const gv=x=>x==null?'—':(x>=0?'+':'')+x.toFixed(1)+'%';
 const gcls=x=>x==null?'neu':(x>=0?'up':'down');
@@ -144,9 +145,9 @@ function renderKPI(s){
   const y=cumOf(s.overall,MM);
   $('#kpis').innerHTML=`
    <div class="kpi"><div class="t">${MONTH_CN[MM-1]} 实销</div><div class="big">${fmt(j.actual)}</div>
-     <div class="sm">千元 ｜ 目标 ${fmt(j.target)} ｜ 完成率 <b class="${j.comp>=100?'good':'warn'}">${pct(j.comp)}</b> ｜ 同比 <span class="${gcls(j.growth)}">${gv(j.growth)}</span></div></div>
+     <div class="sm">万元 ｜ 目标 ${fmt(j.target)} ｜ 完成率 <b class="${j.comp>=100?'good':'warn'}">${pct(j.comp)}</b> ｜ 同比 <span class="${gcls(j.growth)}">${gv(j.growth)}</span></div></div>
    <div class="kpi"><div class="t">累计（1–${MONTH_CN[MM-1]}）实销</div><div class="big">${fmt(y.actual)}</div>
-     <div class="sm">千元 ｜ 目标 ${fmt(y.target)} ｜ 完成率 <b class="${y.comp>=100?'good':'warn'}">${pct(y.comp)}</b> ｜ 同比 <span class="${gcls(y.growth)}">${gv(y.growth)}</span></div></div>`;
+     <div class="sm">万元 ｜ 目标 ${fmt(y.target)} ｜ 完成率 <b class="${y.comp>=100?'good':'warn'}">${pct(y.comp)}</b> ｜ 同比 <span class="${gcls(y.growth)}">${gv(y.growth)}</span></div></div>`;
 }
 function hbar(items){
   const mx=Math.max(...items.map(i=>Math.max(i.value,i.target||0)),1);
@@ -166,7 +167,7 @@ function lineChart(s){
   const tp="M"+tgts.map((v,i)=>`${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' L');
   const area=`${sx(0).toFixed(1)},${H-pad} `+acts.map((v,i)=>`${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ')+` ${sx(n-1).toFixed(1)},${H-pad}`;
   const xl=keys.map((k,i)=>`<text x="${sx(i).toFixed(1)}" y="${H-12}" class="xl">${k}</text>`).join('');
-  const yl=[0,mx/2,mx].map(v=>`<text x="6" y="${(sy(v)+4).toFixed(1)}" class="yl">${Math.round(v).toLocaleString()}</text>`).join('');
+  const yl=[0,mx/2,mx].map(v=>`<text x="6" y="${(sy(v)+4).toFixed(1)}" class="yl">${(v/UNIT_DIV).toLocaleString('en-US',{maximumFractionDigits:1})}</text>`).join('');
   const dots=acts.map((v,i)=>`<circle cx="${sx(i).toFixed(1)}" cy="${sy(v).toFixed(1)}" r="3" class="dot"/>`).join('');
   const hl=(PERIOD==='jul'&&MM-1<n)?`<circle cx="${sx(MM-1).toFixed(1)}" cy="${sy(acts[MM-1]).toFixed(1)}" r="5" fill="none" stroke="#e23b3b" stroke-width="2"/><text x="${sx(MM-1).toFixed(1)}" y="${(sy(acts[MM-1])-10).toFixed(1)}" class="xl" fill="#e23b3b">${MONTH_CN[MM-1]}</text>`:'';
   return `<svg viewBox="0 0 ${W} ${H}" class="chart"><line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" class="ax"/><line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" class="ax"/><polygon points="${area}" class="area"/><path d="${tp}" class="line tgt"/><path d="${ap}" class="line act"/>${yl}${xl}${dots}${hl}</svg>`;
@@ -179,12 +180,12 @@ function annualCard(s){
   const need=left>0?remain/left:0;
   return `<div class="card"><h3>2026 年度目标达成（截至 ${s.as_of_month}）</h3>
     <div class="kpis" style="margin-bottom:10px">
-      <div class="kpi"><div class="t">年度总目标</div><div class="big">${fmt(ANNUAL_TOTAL)}</div><div class="sm">约 3.48 亿 ｜ 千元</div></div>
+      <div class="kpi"><div class="t">年度总目标</div><div class="big">${fmt(ANNUAL_TOTAL)}</div><div class="sm">约 3.48 亿 ｜ 万元</div></div>
       <div class="kpi"><div class="t">1–${s.as_of_month} 已累计</div><div class="big">${fmt(yt)}</div><div class="sm">占年度目标 ${pct(comp)}</div></div>
-      <div class="kpi"><div class="t">年度完成率</div><div class="big ${comp>=50?'good':'warn'}">${pct(comp)}</div><div class="sm">剩余 ${fmt(remain)} 千元</div></div>
-      <div class="kpi"><div class="t">剩余需完成（至 12 月）</div><div class="big">${fmt(remain)}</div><div class="sm">剩 ${left} 个月 ｜ 月均需 ${fmt(need)} 千元</div></div>
+      <div class="kpi"><div class="t">年度完成率</div><div class="big ${comp>=50?'good':'warn'}">${pct(comp)}</div><div class="sm">剩余 ${fmt(remain)} 万元</div></div>
+      <div class="kpi"><div class="t">剩余需完成（至 12 月）</div><div class="big">${fmt(remain)}</div><div class="sm">剩 ${left} 个月 ｜ 月均需 ${fmt(need)} 万元</div></div>
     </div>
-    <div class="note">整体年度目标 <b>${fmt(ANNUAL_TOTAL)} 千元（约 3.48 亿）</b>，截至 ${s.as_of_month} 累计实销 <b>${fmt(yt)} 千元</b>，完成 <b>${pct(comp)}</b>；剩余 <b>${fmt(remain)} 千元</b> 需在 ${left} 个月（${s.as_of_idx+1}–12 月）补齐，月均需 <b>${fmt(need)} 千元</b>。</div>
+    <div class="note">整体年度目标 <b>${fmt(ANNUAL_TOTAL)} 万元（约 3.48 亿）</b>，截至 ${s.as_of_month} 累计实销 <b>${fmt(yt)} 万元</b>，完成 <b>${pct(comp)}</b>；剩余 <b>${fmt(remain)} 万元</b> 需在 ${left} 个月（${s.as_of_idx+1}–12 月）补齐，月均需 <b>${fmt(need)} 万元</b>。</div>
   </div>`;
 }
 function renderPanel(s){
@@ -192,23 +193,23 @@ function renderPanel(s){
   if(DIM==='overall'){
     const lf=aggOf(s.lfl);
     p.innerHTML=`${annualCard(s)}
-      <div class="card"><h3>整体月度实销趋势（1–${s.as_of_month}）· 实销 vs 目标 <span style="color:var(--mut);font-weight:400;font-size:12px">（纵轴单位：千元）</span></h3>${lineChart(s)}
-      <div class="legend"><b style="color:#2f6fed">■</b> 实销　<b style="color:#e0852b">┄</b> 目标　单位：千元　<b style="color:#e23b3b">○</b> 选中月</div></div>
+      <div class="card"><h3>整体月度实销趋势（1–${s.as_of_month}）· 实销 vs 目标 <span style="color:var(--mut);font-weight:400;font-size:12px">（纵轴单位：万元）</span></h3>${lineChart(s)}
+      <div class="legend"><b style="color:#2f6fed">■</b> 实销　<b style="color:#e0852b">┄</b> 目标　单位：万元　<b style="color:#e23b3b">○</b> 选中月</div></div>
       <div class="card"><h3>同店口径（剔除东莞新店）</h3>
-      <div class="note">${perLab()}：实销 ${fmt(lf.actual)} 千元 ｜ 完成率 ${pct(lf.comp)} ｜ 同比 ${gv(lf.growth)}<br>
-      累计（1–${s.as_of_month}）：实销 ${fmt(s.lfl.ytd.actual)} 千元 ｜ 完成率 ${pct(s.lfl.ytd.comp)} ｜ 同比 ${gv(s.lfl.ytd.growth)}</div></div>`;
+      <div class="note">${perLab()}：实销 ${fmt(lf.actual)} 万元 ｜ 完成率 ${pct(lf.comp)} ｜ 同比 ${gv(lf.growth)}<br>
+      累计（1–${s.as_of_month}）：实销 ${fmt(s.lfl.ytd.actual)} 万元 ｜ 完成率 ${pct(s.lfl.ytd.comp)} ｜ 同比 ${gv(s.lfl.ytd.growth)}</div></div>`;
   } else if(DIM==='store'){
     const arr=Object.entries(s.stores).map(([code,x])=>({code,n:x.name,d:aggOf(x),at:ANNUAL[code]||0})).sort((a,b)=>b.d.actual-a.d.actual);
     const tb=`<table><thead><tr><th>门店</th><th>实销（${perLab()}）</th><th>目标</th><th>完成率</th><th>同比</th><th>年度目标</th><th>年度完成率</th><th>剩余需完成</th></tr></thead><tbody>
       ${arr.map(x=>{const at=x.at;const ac=x.d.actual;const acomp=at?ac/at*100:0;const arem=at-ac;return `<tr><td class="st">${x.n}</td><td>${fmt(ac)}</td><td>${fmt(x.d.target)}</td><td class="${x.d.comp>=100?'good':'warn'}">${pct(x.d.comp)}</td><td class="${gcls(x.d.growth)}">${gv(x.d.growth)}</td><td>${at?fmt(at):'—'}</td><td class="${acomp>=100?'good':'warn'}">${pct(acomp)}</td><td class="${arem>0?'warn':'good'}">${arem>0?'+':''}${fmt(arem)}</td></tr>`}).join('')}</tbody></table>`;
-    const bars=hbar(arr.map(x=>({label:x.n,value:x.d.actual,target:x.d.target,sub:`${fmt(x.d.actual)} 千元 · 完成 ${pct(x.d.comp)} · 同比 ${gv(x.d.growth)}`})));
-    p.innerHTML=`<div class="card"><h3>五店对比 <span style="color:var(--mut);font-weight:400;font-size:12px">（单位：千元）</span></h3>${tb}<div style="margin-top:12px">${bars}</div></div>`;
+    const bars=hbar(arr.map(x=>({label:x.n,value:x.d.actual,target:x.d.target,sub:`${fmt(x.d.actual)} 万元 · 完成 ${pct(x.d.comp)} · 同比 ${gv(x.d.growth)}`})));
+    p.innerHTML=`<div class="card"><h3>五店对比 <span style="color:var(--mut);font-weight:400;font-size:12px">（单位：万元）</span></h3>${tb}<div style="margin-top:12px">${bars}</div></div>`;
   } else if(DIM==='group'){
     const arr=Object.entries(s.groups).map(([n,d])=>({n,d:aggOf(d)})).sort((a,b)=>b.d.actual-a.d.actual);
     const tb=`<table><thead><tr><th>集团</th><th>实销（${perLab()}）</th><th>目标</th><th>完成率</th><th>同比</th></tr></thead><tbody>
       ${arr.map(x=>`<tr><td class="st">${x.n}</td><td>${fmt(x.d.actual)}</td><td>${fmt(x.d.target)}</td><td class="${x.d.comp>=100?'good':'warn'}">${pct(x.d.comp)}</td><td class="${gcls(x.d.growth)}">${gv(x.d.growth)}</td></tr>`).join('')}</tbody></table>`;
-    const bars=hbar(arr.map(x=>({label:x.n,value:x.d.actual,target:x.d.target,sub:`${fmt(x.d.actual)} 千元 · 完成 ${pct(x.d.comp)} · 同比 ${gv(x.d.growth)}`})));
-    p.innerHTML=`<div class="card"><h3>集团对比（${perLab()}）<span style="color:var(--mut);font-weight:400;font-size:12px">（单位：千元）</span></h3>${tb}<div style="margin-top:12px">${bars}</div></div>`;
+    const bars=hbar(arr.map(x=>({label:x.n,value:x.d.actual,target:x.d.target,sub:`${fmt(x.d.actual)} 万元 · 完成 ${pct(x.d.comp)} · 同比 ${gv(x.d.growth)}`})));
+    p.innerHTML=`<div class="card"><h3>集团对比（${perLab()}）<span style="color:var(--mut);font-weight:400;font-size:12px">（单位：万元）</span></h3>${tb}<div style="margin-top:12px">${bars}</div></div>`;
   } else if(DIM==='brand'){
     const groups=['全部',...Array.from(new Set(Object.values(s.brands).map(b=>b.group)))];
     const gsel=`<select id="gfilter">${groups.map(g=>`<option ${g===BFILTER?'selected':''}>${g}</option>`).join('')}</select>`;
@@ -219,7 +220,7 @@ function renderPanel(s){
     const mx=Math.max(...arr.map(x=>x.d.actual),1);
     const tb=`<table><thead><tr><th>品牌</th><th>集团</th><th>实销</th><th>目标</th><th>完成率</th><th>同比</th><th></th></tr></thead><tbody>
       ${arr.map(x=>`<tr><td class="st">${x.n}</td><td>${x.group}</td><td>${fmt(x.d.actual)}</td><td>${fmt(x.d.target)}</td><td class="${x.d.comp>=100?'good':'warn'}">${pct(x.d.comp)}</td><td class="${gcls(x.d.growth)}">${gv(x.d.growth)}</td><td style="width:120px"><div class="mini" style="width:${(x.d.actual/mx*100).toFixed(1)}%"></div></td></tr>`).join('')}</tbody></table>`;
-    p.innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3>品牌明细（${perLab()}）<span style="color:var(--mut);font-weight:400;font-size:12px">（单位：千元）</span></h3><div>集团 ${gsel} 排序 ${ssel}</div></div>${tb}</div>`;
+    p.innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3>品牌明细（${perLab()}）<span style="color:var(--mut);font-weight:400;font-size:12px">（单位：万元）</span></h3><div>集团 ${gsel} 排序 ${ssel}</div></div>${tb}</div>`;
     $('#gfilter').onchange=e=>{BFILTER=e.target.value;renderPanel(s);};
     $('#bsort').onchange=e=>{BSORT=e.target.value;renderPanel(s);};
   } else if(DIM==='storebrand'){
@@ -229,10 +230,10 @@ function renderPanel(s){
     const mx=Math.max(...arr.map(x=>x.d.actual),1);
     const tb=`<table><thead><tr><th>品牌</th><th>集团</th><th>实销</th><th>目标</th><th>完成率</th><th>同比</th><th></th></tr></thead><tbody>
       ${arr.map(x=>`<tr><td class="st">${x.n}</td><td>${x.group}</td><td>${fmt(x.d.actual)}</td><td>${fmt(x.d.target)}</td><td class="${x.d.comp>=100?'good':'warn'}">${pct(x.d.comp)}</td><td class="${gcls(x.d.growth)}">${gv(x.d.growth)}</td><td style="width:120px"><div class="mini" style="width:${(x.d.actual/mx*100).toFixed(1)}%"></div></td></tr>`).join('')}</tbody></table>`;
-    const bars=hbar(arr.map(x=>({label:x.n,value:x.d.actual,target:x.d.target,sub:`${fmt(x.d.actual)} 千元 · 完成 ${pct(x.d.comp)} · 同比 ${gv(x.d.growth)}`})));
+    const bars=hbar(arr.map(x=>({label:x.n,value:x.d.actual,target:x.d.target,sub:`${fmt(x.d.actual)} 万元 · 完成 ${pct(x.d.comp)} · 同比 ${gv(x.d.growth)}`})));
     const at=ANNUAL[STORE_SEL]||0;const yt=s.stores[STORE_SEL].ytd.actual;const acomp=at?yt/at*100:0;const arem=at-yt;
-    p.innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3>${s.stores[STORE_SEL].name} · 全品牌目标完成 <span style="color:var(--mut);font-weight:400;font-size:12px">（${perLab()} ｜ 单位：千元）</span></h3><select id="storeSel">${opts}</select></div>
-      <div class="note">${s.stores[STORE_SEL].name} 年度目标 <b>${at?fmt(at)+' 千元':'—'}</b> ｜ 1–${s.as_of_month} 累计 <b>${fmt(yt)} 千元</b> ｜ 年度完成率 <b>${pct(acomp)}</b> ｜ 剩余需完成 <b>${arem>0?'+':''}${fmt(arem)} 千元</b></div>
+    p.innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3>${s.stores[STORE_SEL].name} · 全品牌目标完成 <span style="color:var(--mut);font-weight:400;font-size:12px">（${perLab()} ｜ 单位：万元）</span></h3><select id="storeSel">${opts}</select></div>
+      <div class="note">${s.stores[STORE_SEL].name} 年度目标 <b>${at?fmt(at)+' 万元':'—'}</b> ｜ 1–${s.as_of_month} 累计 <b>${fmt(yt)} 万元</b> ｜ 年度完成率 <b>${pct(acomp)}</b> ｜ 剩余需完成 <b>${arem>0?'+':''}${fmt(arem)} 万元</b></div>
       ${tb}<div style="margin-top:12px">${bars}</div></div>`;
     $('#storeSel').onchange=e=>{STORE_SEL=e.target.value;renderPanel(s);};
   }
