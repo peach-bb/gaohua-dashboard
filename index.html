@@ -81,7 +81,7 @@ let BFILTER='全部', BSORT='actual', STORE_SEL='NC';
 const MONTH_CN=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 const $=s=>document.querySelector(s);
 const UNIT_DIV=10;  // 源数据单位：万元；看板统一展示为万元（÷10）
-const fmt=v=>v==null?'—':(v/UNIT_DIV).toLocaleString('en-US',{maximumFractionDigits:1});
+const fmt=v=>v==null?'—':(v/UNIT_DIV).toLocaleString('en-US',{maximumFractionDigits:0});
 const pct=x=>x==null?'—':x.toFixed(1)+'%';
 const gv=x=>x==null?'—':(x>=0?'+':'')+x.toFixed(1)+'%';
 const gcls=x=>x==null?'neu':(x>=0?'up':'down');
@@ -167,7 +167,7 @@ function lineChart(s){
   const tp="M"+tgts.map((v,i)=>`${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' L');
   const area=`${sx(0).toFixed(1)},${H-pad} `+acts.map((v,i)=>`${sx(i).toFixed(1)},${sy(v).toFixed(1)}`).join(' ')+` ${sx(n-1).toFixed(1)},${H-pad}`;
   const xl=keys.map((k,i)=>`<text x="${sx(i).toFixed(1)}" y="${H-12}" class="xl">${k}</text>`).join('');
-  const yl=[0,mx/2,mx].map(v=>`<text x="6" y="${(sy(v)+4).toFixed(1)}" class="yl">${(v/UNIT_DIV).toLocaleString('en-US',{maximumFractionDigits:1})}</text>`).join('');
+  const yl=[0,mx/2,mx].map(v=>`<text x="6" y="${(sy(v)+4).toFixed(1)}" class="yl">${(v/UNIT_DIV).toLocaleString('en-US',{maximumFractionDigits:0})}</text>`).join('');
   const dots=acts.map((v,i)=>`<circle cx="${sx(i).toFixed(1)}" cy="${sy(v).toFixed(1)}" r="3" class="dot"/>`).join('');
   const hl=(PERIOD==='jul'&&MM-1<n)?`<circle cx="${sx(MM-1).toFixed(1)}" cy="${sy(acts[MM-1]).toFixed(1)}" r="5" fill="none" stroke="#e23b3b" stroke-width="2"/><text x="${sx(MM-1).toFixed(1)}" y="${(sy(acts[MM-1])-10).toFixed(1)}" class="xl" fill="#e23b3b">${MONTH_CN[MM-1]}</text>`:'';
   return `<svg viewBox="0 0 ${W} ${H}" class="chart"><line x1="${pad}" y1="${pad}" x2="${pad}" y2="${H-pad}" class="ax"/><line x1="${pad}" y1="${H-pad}" x2="${W-pad}" y2="${H-pad}" class="ax"/><polygon points="${area}" class="area"/><path d="${tp}" class="line tgt"/><path d="${ap}" class="line act"/>${yl}${xl}${dots}${hl}</svg>`;
