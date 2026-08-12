@@ -200,9 +200,9 @@ function cityRankPanel(cityKey, cityName){
     return '—';
   };
   const stores=c.stores;
-  const head='<th>品牌</th><th>本期排名</th><th>同期排名</th>'+stores.map(s=>`<th>${s.replace('POS','')}</th>`).join('')+'<th>排名变化</th><th>备注</th>';
+  const head='<th>品牌</th><th>本期排名</th><th>同期排名</th>'+stores.map(s=>`<th>${s.replace('POS','')}</th>`).join('')+'<th>排名变化</th>';
   const tb=`<table><thead><tr>${head}</tr></thead><tbody>
-    ${c.rows.map(x=>`<tr><td class="st">${x.brand}</td><td>${x.cur==null?'—':x.cur}</td><td>${x.prev==null?'—':x.prev}</td>`+stores.map(s=>`<td>${cf(x.pos[s])}</td>`).join('')+`<td>${chg(x.cur,x.prev)}</td><td>${x.note==null?'—':x.note}</td></tr>`).join('')}</tbody></table>`;
+    ${c.rows.map(x=>`<tr><td class="st">${x.brand}</td><td>${x.cur==null?'—':x.cur}</td><td>${x.prev==null?'—':x.prev}</td>`+stores.map(s=>`<td>${cf(x.pos[s])}</td>`).join('')+`<td>${chg(x.cur,x.prev)}</td></tr>`).join('')}</tbody></table>`;
   return `<div class="card"><h3>${cityName}城市排名 · 品牌对比 <span style="color:var(--mut);font-weight:400;font-size:12px">（POS 销售额，单位：万元 ｜ 2026 年 1-6 月半年度）</span></h3>${tb}
     <div class="note">数据范围：高化 ${c.range||'2026 年 1-6 月（半年度）'} 对比店数据。本期/同期为品牌在该城市商场的销售排名（数字越小越靠前）；排名变化 = 同期 − 本期（↑ 上升 ↓ 下降）。${c.note||''}</div></div>`;
 }
