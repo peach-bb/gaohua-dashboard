@@ -308,7 +308,7 @@ function cityRankPanel(cityKey, cityName){
   const body=(c.rows||[]).map(x=>{
     const isTot=(x.brand==='合计'||x.brand==='销售合计');
     return '<tr class="'+(isTot?'tot':'')+'"><td class="st">'+x.brand+'</td><td>'+(x.cur==null?'—':x.cur)+'</td><td>'+(x.prev==null?'—':x.prev)+'</td>'
-      +stores.map(s=>'<td>'+cf(x.pos?s[s]:null)+'</td>').join('')
+      +stores.map(s=>'<td>'+cf(x.pos?x.pos[s]:null)+'</td>').join('')
       +'<td>'+chg(x.cur,x.prev)+'</td></tr>';
   }).join('');
   return '<div class="card"><h3>'+cityName+'城市排名 · 品牌对比 <span style="color:var(--mut);font-weight:400;font-size:12px">（POS 销售额，单位：万元 ｜ '+(c.range||'2026 年 1-6 月半年度')+'）</span></h3>'
