@@ -160,6 +160,11 @@ function cumOf(obj,mm){
   return {target:T,actual:A,ly:L,comp,growth};
 }
 const perLab=()=>PERIOD==='jul'?(MONTH_CN[MM-1]+' 单月'):(PERIOD==='sel'?selLabel():('累计 1–'+MONTH_CN[MM-1]));
+// 当前口径所含月份数：单月=1；累计=1..MM；自选=所勾月份个数。用于「月单产」= 实销 ÷ 月份数
+function periodMonths(){
+  if(PERIOD==='jul') return 1;
+  return Math.max(monthsOf().length,1);
+}
 
 function render(){
   const ss=$('#snapSel');ss.innerHTML='';
@@ -340,9 +345,9 @@ function renderPanel(s){
     if(BFILTER!=='全部') arr=arr.filter(x=>x.group===BFILTER);
     arr.sort((a,b)=> BSORT==='growth' ? (b.d.growth??-1e9)-(a.d.growth??-1e9) : BSORT==='comp' ? b.d.comp-a.d.comp : b.d.actual-a.d.actual);
     const mx=Math.max(...arr.map(x=>x.d.actual),1);
-    const tb=`<table><thead><tr><th>品牌</th><th>集团</th><th>实销</th><th>目标</th><th>完成率</th><th>同比</th><th></th></tr></thead><tbody>
-      ${arr.map(x=>`<tr><td class="st">${x.n}</td><td>${x.group}</td><td>${fmt(x.d.actual)}</td><td>${fmt(x.d.target)}</td><td class="${x.d.comp>=100?'good':'warn'}">${pct(x.d.comp)}</td><td class="${gcls(x.d.growth)}">${gv(x.d.growth)}</td><td style="width:120px"><div class="mini" style="width:${(x.d.actual/mx*100).toFixed(1)}%"></div></td></tr>`).join('')}</tbody></table>`;
-    p.innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3>品牌明细（${perLab()}）<span style="color:var(--mut);font-weight:400;font-size:12px">（单位：万元）</span></h3><div>集团 ${gsel} 排序 ${ssel}</div></div>${tb}</div>`;
+    const tb=`<table><thead><tr><th>品牌</th><th>集团</th><th>实销</th><th>目标</th><th>完成率</th><th>同比</th><th>月单产</th><th></th></tr></thead><tbody>
+      ${arr.map(x=>`<tr><td class="st">${x.n}</td><td>${x.group}</td><td>${fmt(x.d.actual)}</td><td>${fmt(x.d.target)}</td><td class="${x.d.comp>=100?'good':'warn'}">${pct(x.d.comp)}</td><td class="${gcls(x.d.growth)}">${gv(x.d.growth)}</td><td><b>${fmt(x.d.actual/periodMonths())}</b></td><td style="width:120px"><div class="mini" style="width:${(x.d.actual/mx*100).toFixed(1)}%"></div></td></tr>`).join('')}</tbody></table>`;
+    p.innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3>品牌明细（${perLab()}）<span style="color:var(--mut);font-weight:400;font-size:12px">（单位：万元）</span></h3><div>集团 ${gsel} 排序 ${ssel}</div></div>${tb}<div class="note">月单产 = 该品牌实销 ÷ ${periodMonths()} 个月（当前口径：${perLab()}），单位：万元/月。</div></div>`;
     $('#gfilter').onchange=e=>{BFILTER=e.target.value;renderPanel(s);};
     $('#bsort').onchange=e=>{BSORT=e.target.value;renderPanel(s);};
   } else if(DIM==='storebrand'){
@@ -350,12 +355,12 @@ function renderPanel(s){
     const sb=s.stores[STORE_SEL].brands;
     let arr=Object.entries(sb).map(([n,b])=>({n,group:b.group,d:aggOf(b)})).sort((a,b)=>b.d.actual-a.d.actual);
     const mx=Math.max(...arr.map(x=>x.d.actual),1);
-    const tb=`<table><thead><tr><th>品牌</th><th>集团</th><th>实销</th><th>目标</th><th>完成率</th><th>同比</th><th></th></tr></thead><tbody>
-      ${arr.map(x=>`<tr><td class="st">${x.n}</td><td>${x.group}</td><td>${fmt(x.d.actual)}</td><td>${fmt(x.d.target)}</td><td class="${x.d.comp>=100?'good':'warn'}">${pct(x.d.comp)}</td><td class="${gcls(x.d.growth)}">${gv(x.d.growth)}</td><td style="width:120px"><div class="mini" style="width:${(x.d.actual/mx*100).toFixed(1)}%"></div></td></tr>`).join('')}</tbody></table>`;
+    const tb=`<table><thead><tr><th>品牌</th><th>集团</th><th>实销</th><th>目标</th><th>完成率</th><th>同比</th><th>月单产</th><th></th></tr></thead><tbody>
+      ${arr.map(x=>`<tr><td class="st">${x.n}</td><td>${x.group}</td><td>${fmt(x.d.actual)}</td><td>${fmt(x.d.target)}</td><td class="${x.d.comp>=100?'good':'warn'}">${pct(x.d.comp)}</td><td class="${gcls(x.d.growth)}">${gv(x.d.growth)}</td><td><b>${fmt(x.d.actual/periodMonths())}</b></td><td style="width:120px"><div class="mini" style="width:${(x.d.actual/mx*100).toFixed(1)}%"></div></td></tr>`).join('')}</tbody></table>`;
     const bars=hbar(arr.map(x=>({label:x.n,value:x.d.actual,target:x.d.target,sub:`${fmt(x.d.actual)} 万元 · 完成 ${pct(x.d.comp)} · 同比 ${gv(x.d.growth)}`})));
     const at=ANNUAL[STORE_SEL]||0;const yt=s.stores[STORE_SEL].ytd.actual;const acomp=at?yt/at*100:0;const arem=at-yt;
     p.innerHTML=`<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><h3>${s.stores[STORE_SEL].name} · 全品牌目标完成 <span style="color:var(--mut);font-weight:400;font-size:12px">（${perLab()} ｜ 单位：万元）</span></h3><select id="storeSel">${opts}</select></div>
-      <div class="note">${s.stores[STORE_SEL].name} 年度目标 <b>${at?fmt(at)+' 万元':'—'}</b> ｜ 1–${s.as_of_month} 累计 <b>${fmt(yt)} 万元</b> ｜ 年度完成率 <b>${pct(acomp)}</b> ｜ 剩余需完成 <b>${arem>0?'+':''}${fmt(arem)} 万元</b></div>
+      <div class="note">${s.stores[STORE_SEL].name} 年度目标 <b>${at?fmt(at)+' 万元':'—'}</b> ｜ 1–${s.as_of_month} 累计 <b>${fmt(yt)} 万元</b> ｜ 年度完成率 <b>${pct(acomp)}</b> ｜ 剩余需完成 <b>${arem>0?'+':''}${fmt(arem)} 万元</b>　｜　月单产 = 该店各品牌实销 ÷ ${periodMonths()} 个月（万元/月）</div>
       ${tb}<div style="margin-top:12px">${bars}</div></div>`;
     $('#storeSel').onchange=e=>{STORE_SEL=e.target.value;renderPanel(s);};
   } else if(DIM==='city_nc'){
